@@ -36,6 +36,21 @@ def _setup_lark_env() -> tuple[str, str]:
     return app_id, app_secret
 
 
+def _truncate_text(text: str, limit: int = 2000) -> str:
+    if len(text) <= limit:
+        return text
+    return text[:limit] + " ... (truncated)"
+
+
+def _safe_getattr(obj, path: str, default: str = "") -> str:
+    current = obj
+    for part in path.split("."):
+        current = getattr(current, part, None)
+        if current is None:
+            return default
+    return str(current)
+
+
 def _extract_text_message(data: P2ImMessageReceiveV1) -> Optional[str]:
     message = data.event.message
     if message.chat_type != "p2p":
@@ -55,8 +70,21 @@ async def _handle_message(
     agent,
     client: lark.Client,
 ) -> None:
+    message = data.event.message
+    sender_open_id = _safe_getattr(data, "event.sender.sender_id.open_id")
+    sender_user_id = _safe_getattr(data, "event.sender.sender_id.user_id")
+    print(
+        "[feishu] 收到消息"
+        f" chat_id={message.chat_id}"
+        f" message_id={message.message_id}"
+        f" chat_type={message.chat_type}"
+        f" msg_type={message.message_type}"
+        f" sender_open_id={sender_open_id}"
+        f" sender_user_id={sender_user_id}"
+    )
     text = _extract_text_message(data)
     if not text:
+        print("[feishu] 忽略非单聊或非文本消息。")
         return
 
     thread_id = data.event.message.chat_id
@@ -65,9 +93,11 @@ async def _handle_message(
         config["callbacks"] = [runtime.ToolLogger()]
 
     payload = {"messages": [{"role": "user", "content": text}]}
+    print(f"[feishu] 用户问题: {_truncate_text(text)}")
     result = await agent.ainvoke(payload, config=config)
     reply = result["messages"][-1].content
     reply_text = reply if isinstance(reply, str) else str(reply)
+    print(f"[feishu] AI 回复: {_truncate_text(reply_text)}")
 
     content = json.dumps({"text": reply_text}, ensure_ascii=False)
     request = (
@@ -121,6 +151,8 @@ def main() -> None:
     loop_thread.start()
 
     client = lark.Client.builder().app_id(app_id).app_secret(app_secret).build()
+    if runtime.log_tool_calls:
+        print("[feishu] 已开启工具调用日志输出。")
 
     def _on_message(data: P2ImMessageReceiveV1) -> None:
         future = asyncio.run_coroutine_threadsafe(_handle_message(data, agent, client), loop)
