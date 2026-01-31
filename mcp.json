@@ -1,0 +1,75 @@
+{
+  "tools": {
+    "time": {
+      "type": "stdio",
+      "description": "Time server (local).",
+      "active": true,
+      "config": {
+        "command": "python",
+        "args": [
+          "-m",
+          "mcp_server_time"
+        ]
+      }
+    },
+    "context7": {
+      "type": "stdio",
+      "description": "Context7 MCP server.",
+      "active": true,
+      "config": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp"
+        ]
+      }
+    },
+    "amap-amap-sse": {
+      "type": "sse",
+      "description": "AMap MCP server (fill your key).",
+      "active": true,
+      "config": {
+        "url": "https://mcp.amap.com/sse?key=9858dc35e887ab170a5cd63a800ed21f"
+      }
+    },
+    "12306-mcp": {
+      "type": "stdio",
+      "description": "12306 MCP server.",
+      "active": true,
+      "config": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "12306-mcp"
+        ]
+      }
+    },
+    "Sequential thinking": {
+      "type": "stdio",
+      "description": "Sequential Thinking MCP server.",
+      "active": true,
+      "config": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      }
+    },
+    "firecrawl-mcp": {
+      "type": "stdio",
+      "description": "Firecrawl MCP server (fill your key).",
+      "active": false,
+      "config": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "firecrawl-mcp"
+        ],
+        "env": {
+          "FIRECRAWL_API_KEY": "fc-d80d0b753a14478e8989dc10b7b55e8e"
+        }
+      }
+    }
+  }
+}
