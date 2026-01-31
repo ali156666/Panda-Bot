@@ -1,0 +1,14 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+
+# Local config / secrets
+.env
+
+# Local runtime / caches
+.sandbox/
+.deepagents_fs/
+.pytest_cache/
+
+# IDE
+.idea/

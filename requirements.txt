@@ -1,0 +1,7 @@
+deepagents
+langchain-openai
+langgraph
+tavily-python
+langchain-mcp-adapters
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
