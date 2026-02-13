@@ -1,45 +1,41 @@
-## Agent Development Requirements (Working Agreement)
-- **Role**: You are an **agent development engineer** proficient in **Python**. Your primary stack is **LangChain** and **Deep_Agent**. You must reply in **Chinese**, and **all code comments must also be in Chinese**.
-- **1) Clarify first**: Proactively ask clarifying questions for any ambiguous or missing details **until the requirements are fully clear**.
-- **2) MCP deep thinking for complex tasks**: For complex requirements, use **MCP-style deep reasoning** to break down the problem and outline step-by-step implementation plans before coding.
-- **3) Read official docs before coding**: Before writing code, consult **official documentation**. For LangChain-related topics, use **`langchain-docs`** first; if unavailable, use **`context7`**. You may also use web search to find primary sources.
-- **4) Tests live in `test/`**: Any test scripts/files must be placed under the **`test/`** directory to keep the repository root clean.
-- **5) Push changes to GitHub**: After each code change, **push the updates to GitHub**.
-
----
-
-﻿# Repository Guidelines
+# Repository Guidelines
 
 ## Project Structure & Module Organization
-- `deepagent_demo.py` is the main demo entry point that wires the DeepAgent runtime, tools, and backends.
-- `skills/` holds skill packs, each in its own folder with a `SKILL.md` descriptor.
-- `mcp.json` configures optional MCP tool servers (stdio/sse) used by the demo.
-- `.env` stores local secrets and config overrides (never commit real keys).
-- `.sandbox/` is the default execution workspace; `.deepagents_fs/` stores conversation history and summaries.
-- Test scripts live in the repo root as `test_*.py`.
+- Core entry scripts are `deepagent_demo.py` (interactive runtime) and `feishu_deepagent_bot.py` (Feishu bot + scheduler loop).
+- Main packages:
+  - `deepagent/session/`: session lifecycle and persistence helpers.
+  - `browser/`: browser tool integration used by agent workflows.
+  - `scheduler/`: cron, heartbeat, run logs, and SQLite-backed scheduling state.
+  - `prompts/`: prompt fragments loaded into runtime system prompts.
+  - `skills/`: local skill packs (`SKILL.md`, optional `scripts/`, optional `data/`).
+- Runtime/state artifacts include `memory/`, `scheduler.sqlite`, `.deepagents_fs/`, and `feishu_bot.log`; treat these as generated data, not source.
 
 ## Build, Test, and Development Commands
-- `pip install -r requirements.txt` installs runtime dependencies.
-- `python deepagent_demo.py` starts the interactive demo (requires OpenAI/Tavily keys and Postgres config).
-- `python test_skills.py` validates skill discovery.
-- `python test_history_offload.py` and `python test_history_offload_composite.py` validate history editing.
-- Optional: `pytest` can run `test_*.py` if you have pytest installed.
+- `python -m venv .venv` then `.\.venv\Scripts\Activate.ps1`: create and activate local env (PowerShell).
+- `pip install -r requirements.txt`: install runtime dependencies.
+- `python deepagent_demo.py`: run the local interactive agent.
+  - Requires `OPENAI_API_KEY` and `TAVILY_API_KEY`.
+- `python feishu_deepagent_bot.py`: run Feishu long-connection bot.
+  - Also requires `APP_ID` and `APP_SECRET`.
+- `python -m unittest skills/pdf/scripts/check_bounding_boxes_test.py`: run the currently committed unit test.
 
 ## Coding Style & Naming Conventions
-- Python style: 4-space indentation, type hints where practical, and standard library first.
-- Naming: `snake_case` for functions/vars, `PascalCase` for classes, `UPPER_CASE` for constants.
-- Keep CLI output user-focused; reserve debug output behind environment flags like `LOG_TOOL_CALLS`.
+- Target Python 3.12+ with 4-space indentation and UTF-8 files.
+- Use type hints for new or changed functions.
+- Naming: modules/functions `snake_case`, classes `PascalCase`, constants/env keys `UPPER_SNAKE_CASE`.
+- Keep startup side effects in script guards (`if __name__ == "__main__":`).
 
 ## Testing Guidelines
-- Tests are lightweight scripts; run them with `python` from the repo root.
-- Importing `deepagent_demo.py` requires `OPENAI_API_KEY` and `TAVILY_API_KEY`, so set a `.env` first.
-- No coverage target is enforced; add focused tests for new behaviors.
+- No centralized test suite is configured yet; add focused tests with each behavioral change.
+- Prefer `test_*.py` names; existing script tests may use `*_test.py` (for example in `skills/pdf/scripts/`).
+- For scheduler/session changes, include deterministic persistence checks (write/read/update paths).
 
 ## Commit & Pull Request Guidelines
-- No Git history is present in this workspace; use clear, imperative commit messages (e.g., "Add MCP server normalization").
-- PRs should include a short summary, testing commands run, and any config/env changes.
-- Never commit secrets; `.env` should stay local.
+- Current history uses short imperative subjects (for example, `Add ...`).
+- Recommended format: `<Verb> <scope>: <summary>` (example: `Fix scheduler: handle empty cron spec`).
+- PRs should include purpose, env/config changes, verification steps, and logs/screenshots when bot behavior changes.
+- Link related issues/tasks and call out any migration impact on persisted files (`scheduler.sqlite`, `memory/`).
 
-## Configuration & Safety Notes
-- Required env: `OPENAI_API_KEY`, `TAVILY_API_KEY`. For Postgres: `DATABASE_URL` or `PG_*` vars.
-- `ALLOW_LOCAL_SHELL=0` keeps execution inside `.sandbox/`; only enable local shell when needed.
+## Security & Configuration Tips
+- Keep secrets in `.env`; do not commit API keys, tokens, or chat identifiers.
+- Redact sensitive values before sharing `feishu_bot.log` or copied runtime output.

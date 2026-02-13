@@ -1,14 +1,38 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 
 # Local config / secrets
 .env
+.env.*
+!.env.example
+mcp.local.json
 
-# Local runtime / caches
+# Local runtime / caches / state
 .sandbox/
 .deepagents_fs/
 .pytest_cache/
+memory/
+outputs/
+scheduler.sqlite
+scheduler.sqlite-journal
+*.sqlite
+*.sqlite-journal
+__tmp_*/
 
-# IDE
+# Logs
+*.log
+feishu_bot.log
+app-*.log
+
+# IDE / OS
 .idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db
+
+# Local non-source folder
+website/
